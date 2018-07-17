@@ -1,0 +1,29 @@
+{
+  "name": "jwebcreation/wizishop-sdk",
+  "authors": [
+    {
+      "name": "JWeb-creation",
+      "email": "support@jweb-creation.fr"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "WiziShop\\SDK\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WiziShop\\SDK\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "php": ">=5.5",
+    "guzzlehttp/guzzle": "^6.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^5.1"
+  },
+  "config": {
+    "bin-dir": "bin"
+  }
+}
