@@ -327,7 +327,6 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
      */
     public function createProduct($class, $tab_category, $tab_image )
     {
-        var_dump( $tab_category[0]); die;
         try {
             $fields = array(
                 'category_id' => $tab_category[0],
