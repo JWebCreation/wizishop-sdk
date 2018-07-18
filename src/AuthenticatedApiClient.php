@@ -325,18 +325,15 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
      * @return array Product
      * @throws ApiException
      */
-    public function createProduct($class, $id, $image )
+    public function createProduct($class, $id, $tab_image )
     {
-       foreach ( $image as $img ) {
-           $fields = array( 'images' => $img->image );
-       }
-
        foreach ( $id as $cat ) {
             $fields = array( 'other_categories_id' => $car->category_id );
        }
 
         try {
             $fields = array(
+                'images' => $tab_image,
                 'sku' => $class->sku,
                 'name' => $class->name,
                 'description' => $class->description,
