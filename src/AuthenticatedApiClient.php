@@ -337,6 +337,8 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
             "mandatory" => false,
         ];
 
+	    $short_text = strip_tags( $class->short_description );
+
 		try {
 			$fields = array(
 				'category_id' => $tab_category[0],
@@ -345,14 +347,14 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 				'sku' => $class->sku,
 				'name' => $class->name,
 				'description' => $class->description,
-				'short_description' => $class->short_description,
+				'short_description' => $short_text,
 				'brand' => $class->brand,
 				'ean13' => $class->ean13,
 				'tax_id' => $class->tax_id,
 				'tax' => $tax,
 				'weight' => $class->weight,
 				'quantity' => $class->quantity,
-				'price_tax_excluded' => $class->price,
+				'price_tax_excluded' => $class->price_tax_excluded,
 				'visible' => $class->visible,
 				'url' => $class->url,
 				'meta->title' => $class->meta_title,
