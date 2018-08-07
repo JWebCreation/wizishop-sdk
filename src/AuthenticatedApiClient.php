@@ -331,6 +331,12 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	    else
 	        $tax = $class->tax;
 
+	    $custom = [
+            "title" => $class->custom_fields->garantie2,
+            "price_tax_excluded" => $class->custom_fields->cost,
+            "mandatory" => false,
+        ];
+
 		try {
 			$fields = array(
 				'category_id' => $tab_category[0],
@@ -351,7 +357,8 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 				'url' => $class->url,
 				'meta->title' => $class->meta_title,
 				'meta->description' => $class->meta_description,
-				'meta->keywords' => $class->meta_keywords
+				'meta->keywords' => $class->meta_keywords,
+                'customizations' => $custom
 			);
 
 			$response = $this->post('products', [
