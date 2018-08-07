@@ -338,7 +338,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
         ];
 
 	    $short_text = strip_tags( $class->short_description );
-        str_replace("&#160;", "", $short_text);
+        $text = str_replace("&#160;", "", $short_text);
 
 		try {
 			$fields = array(
@@ -348,7 +348,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 				'sku' => $class->sku,
 				'name' => $class->name,
 				'description' => $class->description,
-				'short_description' => $short_text,
+				'short_description' => $text,
 				'brand' => $class->brand,
 				'ean13' => $class->ean13,
 				'tax_id' => $class->tax_id,
