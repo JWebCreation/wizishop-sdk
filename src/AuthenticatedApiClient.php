@@ -338,6 +338,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
         ];
 
 	    $short_text = strip_tags( $class->short_description );
+        str_replace("&#160;", "", $short_text);
 
 		try {
 			$fields = array(
