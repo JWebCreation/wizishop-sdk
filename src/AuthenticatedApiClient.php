@@ -326,18 +326,20 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function createProduct($class, $tab_category, $tab_image )
 	{
-	    if ( $class->tax == NULL )
+	    if ( $class->mod_product_tax == NULL )
 	        $tax = 20;
 	    else
-	        $tax = $class->tax;
+	        $tax = $class->mod_product_tax;
 
+	    /*
 	    $custom = [
-            "title" => $class->custom_fields->garantie2,
-            "price_tax_excluded" => $class->custom_fields->cost,
+            "title" => $class->garantie2,
+            "price_tax_excluded" => $class->ccost,
             "mandatory" => false,
         ];
+	    */
 
-	    $short_text = strip_tags( $class->short_description );
+	    $short_text = strip_tags( $class->mod_product_short_description );
         $text = str_replace("&#160;", "", $short_text);
 
 		try {
@@ -345,23 +347,22 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 				'category_id' => $tab_category[0],
 				'other_categories_id' => $tab_category,
 				'images' => $tab_image,
-				'sku' => $class->sku,
-				'name' => $class->name,
-				'description' => $class->description,
+				'sku' => $class->mod_product_sku,
+				'name' => $class->mod_product_name,
+				'description' => $class->mod_product_description,
 				'short_description' => $text,
-				'brand' => $class->brand,
-				'ean13' => $class->ean13,
-				'tax_id' => $class->tax_id,
+				'brand' => $class->mod_product_brand,
+				'ean13' => $class->mod_product_ean13,
+				'tax_id' => $class->mod_product_tax_id,
 				'tax' => $tax,
-				'weight' => $class->weight,
-				'quantity' => $class->quantity,
-				'price_tax_excluded' => $class->price_tax_excluded,
-				'visible' => $class->visible,
-				'url' => $class->url,
-				'meta->title' => $class->meta_title,
-				'meta->description' => $class->meta_description,
-				'meta->keywords' => $class->meta_keywords,
-                'customizations' => $custom
+				'weight' => $class->mod_product_weight,
+				'quantity' => $class->mod_product_quantity,
+				'price_tax_excluded' => $class->mod_product_price_tax_excluded,
+				'visible' => $class->mod_product_visible,
+				'url' => $class->mod_product_url,
+				'meta->title' => $class->mod_product_meta_title,
+				'meta->description' => $class->mod_product_meta_description,
+				'meta->keywords' => $class->mod_product_meta_keywords
 			);
 
 			$response = $this->post('products', [
