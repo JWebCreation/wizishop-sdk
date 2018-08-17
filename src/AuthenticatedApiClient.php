@@ -326,10 +326,10 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function createProduct($class, $tab_category, $tab_image )
 	{
-	    if ( $class->mod_product_tax == NULL )
+	    if ( $class->mod_product_Tax == NULL )
 	        $tax = 20;
 	    else
-	        $tax = $class->mod_product_tax;
+	        $tax = $class->mod_product_Tax;
 
 	    /*
 	    $custom = [
