@@ -577,7 +577,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function pendingPaymentOrder($orderId)
 	{
 		try {
-			$response = $this->post(sprintf('orders/%s/status/pending_payment', $orderId));
+			$response = $this->put(sprintf('orders/%s/status/pending_payment', $orderId));
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -594,7 +594,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function pendingPaymentVerificationOrder($orderId)
 	{
 		try {
-			$response = $this->post(sprintf('orders/%s/status/pending_payment_verification', $orderId));
+			$response = $this->put(sprintf('orders/%s/status/pending_payment_verification', $orderId));
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -611,7 +611,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function pendingReplenishmentOrder($orderId)
 	{
 		try {
-			$response = $this->post(sprintf('orders/%s/status/pending_replenishment', $orderId));
+			$response = $this->put(sprintf('orders/%s/status/pending_replenishment', $orderId));
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -628,7 +628,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function pendingPreparationOrder($orderId)
 	{
 		try {
-			$response = $this->post(sprintf('orders/%s/status/pending_preparation', $orderId));
+			$response = $this->put(sprintf('orders/%s/status/pending_preparation', $orderId));
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -645,7 +645,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function preparingOrder($orderId)
 	{
 		try {
-			$response = $this->post(sprintf('orders/%s/status/preparing', $orderId));
+			$response = $this->put(sprintf('orders/%s/status/preparing', $orderId));
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -662,7 +662,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function partiallySentOrder($orderId)
 	{
 		try {
-			$response = $this->post(sprintf('orders/%s/status/partially_sent', $orderId));
+			$response = $this->put(sprintf('orders/%s/status/partially_sent', $orderId));
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -688,7 +688,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function shipOrder($orderId, array $trackingNumbers)
 	{
 		try {
-			$response = $this->post(sprintf('orders/%s/status/ship', $orderId), [
+			$response = $this->put(sprintf('orders/%s/status/ship', $orderId), [
 				'json' => $trackingNumbers
 			]);
 			return json_decode($response->getBody(), true);
@@ -707,7 +707,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function deliveredOrder($orderId)
 	{
 		try {
-			$response = $this->post(sprintf('orders/%s/status/delivered', $orderId));
+			$response = $this->put(sprintf('orders/%s/status/delivered', $orderId));
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -724,7 +724,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function returnOrder($orderId)
 	{
 		try {
-			$response = $this->post(sprintf('orders/%s/status/return', $orderId));
+			$response = $this->put(sprintf('orders/%s/status/return', $orderId));
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -741,7 +741,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function returnedOrder($orderId)
 	{
 		try {
-			$response = $this->post(sprintf('orders/%s/status/returned', $orderId));
+			$response = $this->put(sprintf('orders/%s/status/returned', $orderId));
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -758,7 +758,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function refundedOrder($orderId)
 	{
 		try {
-			$response = $this->post(sprintf('orders/%s/status/refunded', $orderId));
+			$response = $this->put(sprintf('orders/%s/status/refunded', $orderId));
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -775,7 +775,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
     public function cancelOrder($orderId)
     {
         try {
-            $response = $this->post(sprintf('orders/%s/status/cancel', $orderId));
+            $response = $this->put(sprintf('orders/%s/status/cancel', $orderId));
             return json_decode($response->getBody(), true);
         } catch (RequestException $e) {
             throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
