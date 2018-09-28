@@ -764,7 +764,6 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
 		}
 	}
-}
 
 /**
  * Changes order status to "canceled" (status_code: 50)
@@ -773,13 +772,13 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
  *
  * @return array Order details with the new status
  */
-public function cancelOrder($orderId)
-{
-    try {
-        $response = $this->post(sprintf('orders/%s/status/cancel', $orderId));
-        return json_decode($response->getBody(), true);
-    } catch (RequestException $e) {
-        throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+    public function cancelOrder($orderId)
+    {
+        try {
+            $response = $this->post(sprintf('orders/%s/status/cancel', $orderId));
+            return json_decode($response->getBody(), true);
+        } catch (RequestException $e) {
+            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+        }
     }
-}
 }
