@@ -321,7 +321,6 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	{
 		try {
 			$fields = [
-				'id' => $newId,
 				'id_parent' => $newParent_id,
 				'name' => $name,
 				'url' => $newUrl,
@@ -344,7 +343,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 * @return array Product
 	 * @throws ApiException
 	 */
-	public function createProduct($class, $tab_category, $tab_image )
+	public function createProduct( $class, $tab_category, $tab_image )
 	{
 	    if ( $class->mod_product_Tax == NULL )
 	        $tax = 20;
@@ -394,6 +393,60 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
 		}
 	}
+
+    /**
+     * @param $class
+     * @return array Product
+     * @throws ApiException
+     */
+    public function createProductVariation( $class, $tab_category, $tab_image )
+    {
+        if ( $class[0]->tax == NULL )
+            $tax = 20;
+        else
+            $tax = $class[0]->tax;
+
+        foreach ( $class["attributs"] as $attribut )
+        {
+            $tab_attribut[] = [
+                'name' => $attribut->name,
+                'options' => [
+                    "value" => $attribut->value,
+                    "sku" => $attribut->sku,
+                    "ean13" => $attribut->ean13,
+                    "quantity" => $attribut->quantity,
+                    "price_tax_excluded" => $attribut->price
+                ]
+            ];
+        }
+
+        try {
+            $fields = array(
+                'category_id' => $tab_category[0],
+                'other_categories_id' => $tab_category,
+                'images' => $tab_image,
+                'sku' => $class[0]->sku,
+                'name' => $class[0]->name,
+                'description' => $class[0]->description,
+                'brand' => $class[0]->brand,
+                'tax' => $tax,
+                'weight' => $class[0]->weight,
+                'quantity' => $class[0]->quantity,
+                'price_tax_excluded' => $class[0]->price_tax_excluded,
+                'attributes' => $tab_attribut
+            );
+
+            dump($fields); die;
+
+            $response = $this->post('products', [
+                'json' => $fields
+            ]);
+
+            return json_decode($response->getBody(), true);
+        } catch (RequestException $e) {
+            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+        }
+    }
 
 	/**
 	 * @param $class
