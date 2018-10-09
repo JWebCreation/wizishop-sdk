@@ -401,6 +401,10 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
      */
     public function createProductVariation( $class, $tab_category, $tab_image )
     {
+        dump("/////////////////");
+        dump($class);
+        dump("/////////////////");
+
         if ( $class[0]->tax == NULL )
             $tax = 20;
         else
@@ -408,6 +412,9 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
         foreach ( $class["attributs"] as $attribut )
         {
+            dump( $attribut );
+            dump("/////////////////");
+
             $tab_attribut[] = [
                 'name' => $attribut->name,
                 'options' => [
