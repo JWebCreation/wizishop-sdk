@@ -423,8 +423,8 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
         try {
             $fields = array(
-                'category_id' => "3",//$tab_category[0],
-                'other_categories_id' => "3",//$tab_category,
+                'category_id' => $tab_category[0],
+                'other_categories_id' => $tab_category,
                 'images' => $tab_image,
                 //'sku' => $class[0]["sku"],
                 'name' => $class[0]["name"],
