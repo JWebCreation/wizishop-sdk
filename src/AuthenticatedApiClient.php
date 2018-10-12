@@ -406,7 +406,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
         else
             $tax = $class[0]->tax;
 
-        foreach ( $class["attributs"] as $attribut )
+        foreach ( $class["attributes"][0] as $attribut )
         {
             $option[] = [
                 "value" => $attribut["value"],
@@ -416,10 +416,10 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
             ];
         }
 
-            $tab_attribut = [
-                'name' => $attribut["name"],
-                'options' => $option
-            ];
+        $tab_attribut = [
+            'name' => $attribut["name"],
+            'options' => $option
+        ];
 
         try {
             $fields = array(
@@ -427,13 +427,13 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
                 'other_categories_id' => $tab_category,
                 'images' => $tab_image,
                 //'sku' => $class[0]["sku"],
-                'name' => $class[0]["name"],
-                'description' => $class[0]["description"],
-                'brand' => $class[0]["brand"],
+                'name' => $class["name"],
+                'description' => $class["description"],
+                'brand' => $class["brand"],
                 'tax' => $tax,
-                'weight' => $class[0]["weight"],
-                'quantity' => $class[0]["quantity"],
-                'price_tax_excluded' => $class[0]["price_tax_excluded"],
+                'weight' => $class["weight"],
+                'quantity' => $class["quantity"],
+                'price_tax_excluded' => $class["price_tax_excluded"],
                 'attributes' => [ $tab_attribut ]
             );
 
@@ -442,28 +442,29 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
                 'json' => $fields
             ]);
 
+
             return json_decode($response->getBody(), true);
         } catch (RequestException $e) {
             throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
         }
     }
 
-	/**
-	 * @param $class
-	 * @return array Order
-	 * @throws ApiException
-	 */
-	public function createOrder( $class )
-	{
-		try {
-			$fields = [
-				'id' => $class->order_id,
-				'date' => $class->date,
-				'status_text' => $class->status_name,
-				'status_code' => $class->wizi_status_id,
-				'currency' => $class->currency,
-				'total_amount' => $class->total_amount,
-				'total_shipping_amount' => $class->total_shipping,
+    /**
+     * @param $class
+     * @return array Order
+     * @throws ApiException
+     */
+    public function createOrder( $class )
+    {
+        try {
+            $fields = [
+                'id' => $class->order_id,
+                'date' => $class->date,
+                'status_text' => $class->status_name,
+                'status_code' => $class->wizi_status_id,
+                'currency' => $class->currency,
+                'total_amount' => $class->total_amount,
+                'total_shipping_amount' => $class->total_shipping,
 				'payment_label' => $class->payment_method_name,
 				'number_of_products' => $class->total_products,
 				'weight' => $class->weight,
