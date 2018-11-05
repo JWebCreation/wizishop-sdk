@@ -35,7 +35,9 @@ class ApiClientFactory
             $jwt = JWT::fromString($jsonResponse['token']);
 
             $config['account_id'] = $jsonResponse['account_id'];
-            $config['default_shop_id'] = $jsonResponse['default_shop_id'];
+			if( !isset($config['default_shop_id']) ) {
+				$config['default_shop_id'] = $jsonResponse['default_shop_id'];
+			}
 
             $client = new AuthenticatedApiClient($jwt, $config);
 
