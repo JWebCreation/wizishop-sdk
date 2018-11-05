@@ -11,7 +11,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 * @const string SDK version
 	 */
 
-	const VERSION = '1.0.8';
+	const VERSION = '1.0.9';
 	/**
 	 * @const string API URL (ending with /)
 	 */
@@ -21,6 +21,11 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	/**
 	 * @var JWT Json Web Token
 	 */
+
+    const DEFAULT_TAX = "20";
+    /**
+     * @const string default Tax
+     */
 
 	private $jwt;
 
@@ -40,6 +45,18 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 		];
 		parent::__construct($defaultConfig + $config);
 	}
+
+    /**
+     * @param $error (Message, Request and Response of the route)
+     *
+     * @return array
+     */
+    public function error( $error )
+    {
+        $error->getMessage();
+        $error->getRequest();
+        $error->getResponse();
+    }
 
 	/**
 	 * @param callable $call Closure to get a json formatted result page for a page number
@@ -346,7 +363,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function createProduct( $class, $tab_category, $tab_image )
 	{
 	    if ( $class->mod_product_Tax == NULL )
-	        $tax = 20;
+	        $tax = self::DEFAULT_TAX;
 	    else
 	        $tax = $class->mod_product_Tax;
 
@@ -357,6 +374,18 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
             "mandatory" => false,
         ];
 	    */
+	    $strlen = strlen( $class->mod_product_description);
+	    dump($strlen); die;
+
+	    if ( $strlen < 1500 )
+        {
+            dump("); die;
+            $description = $class->mod_product_description;
+        }
+        else {
+            dump("grand");
+            $description = "Trop long voir BDD";
+        }
 
 	    $short_text = strip_tags( $class->mod_product_short_description );
         $text = str_replace("&#160;", "", $short_text);
@@ -368,7 +397,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 				'images' => $tab_image,
 				'sku' => $class->mod_product_sku,
 				'name' => $class->mod_product_name,
-				'description' => $class->mod_product_description,
+				'description' => $description,
 				'short_description' => $text,
 				'brand' => $class->mod_product_brand,
 				'ean13' => $class->mod_product_ean13,
@@ -401,10 +430,13 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
      */
     public function createProductVariation( $class, $tab_category, $tab_image )
     {
-        if ( $class[0]["tax"] == NULL )
-            $tax = 20;
-        else
-            $tax = $class[0]->tax;
+        if ( $class["tax"] == NULL )
+        {
+            $tax = self::DEFAULT_TAX;
+        }
+        else {
+            $tax = $class["tax"];
+        }
 
         foreach ( $class["attributes"][0] as $attribut )
         {
@@ -437,12 +469,66 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
                 'attributes' => [ $tab_attribut ]
             );
 
-            dump(json_encode($fields));
             $response = $this->post('products', [
                 'json' => $fields
             ]);
 
 
+            return json_decode($response->getBody(), true);
+        } catch (RequestException $e) {
+            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+        }
+    }
+
+    /**
+     * @param string $brandId
+     * @param string $newName
+     * @param string $newUrl
+     * @param string $newImageUrl
+     *
+     * @return array Brand
+     */
+    public function updateProduct( $ProductId, $class, $tab_category, $tab_image )
+    {
+        if ($class["tax"] == NULL) {
+            $tax = self::DEFAULT_TAX;
+        } else {
+            $tax = $class["tax"];
+        }
+
+        foreach ($class["attributes"][0] as $attribut) {
+            $option[] = [
+                "value" => $attribut["value"],
+                //"sku" => $attribut["sku"],
+                "quantity" => $attribut["quantity"],
+                "price_tax_excluded" => $attribut["price"]
+            ];
+        }
+
+        $tab_attribut = [
+            'name' => $attribut["name"],
+            'options' => $option
+        ];
+
+        try {
+            $fields = array(
+                'category_id' => $tab_category[0],
+                'other_categories_id' => $tab_category,
+                'images' => $tab_image,
+                // SKU (brands ne le retourne pas)
+                'name' => $class["name"],
+                'description' => $class["description"],
+                'brand' => $class["brand"],
+                'tax' => $tax,
+                'weight' => $class["weight"],
+                'quantity' => $class["quantity"],
+                'price_tax_excluded' => $class["price_tax_excluded"],
+                'attributes' => [$tab_attribut]
+            );
+
+            $response = $this->patch(sprintf('products/%s', $ProductId), [
+                'json' => $fields
+            ]);
             return json_decode($response->getBody(), true);
         } catch (RequestException $e) {
             throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -465,35 +551,35 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
                 'currency' => $class->currency,
                 'total_amount' => $class->total_amount,
                 'total_shipping_amount' => $class->total_shipping,
-				'payment_label' => $class->payment_method_name,
-				'number_of_products' => $class->total_products,
-				'weight' => $class->weight,
-				'billing_address[lastname]' => $class->customer_last_name,
-				'billing_address[firstname]' => $class->customer_first_name,
-				'billing_address[street]' => $class->billing_add,
-				'billing_address[country]' => $class->billing_add_country,
-				'billing_address[email]' => $class->customer_email,
-				'shipping_address[lastname]' => $class->customer_last_name,
-				'shipping_address[firstname]' => $class->customer_first_name,
-				'shipping_address[street]' => $class->shipping_add,
-				'shipping_address[country]' => $class->shipping_add_country,
-				'shipping_address[email]' => $class->customer_email,
-				'shippings[code]' => $class->shipping_code
-			];
+                'payment_label' => $class->payment_method_name,
+                'number_of_products' => $class->total_products,
+                'weight' => $class->weight,
+                'billing_address[lastname]' => $class->customer_last_name,
+                'billing_address[firstname]' => $class->customer_first_name,
+                'billing_address[street]' => $class->billing_add,
+                'billing_address[country]' => $class->billing_add_country,
+                'billing_address[email]' => $class->customer_email,
+                'shipping_address[lastname]' => $class->customer_last_name,
+                'shipping_address[firstname]' => $class->customer_first_name,
+                'shipping_address[street]' => $class->shipping_add,
+                'shipping_address[country]' => $class->shipping_add_country,
+                'shipping_address[email]' => $class->customer_email,
+                'shippings[code]' => $class->shipping_code
+            ];
 
-			$response = $this->post('orders', [
-				'json' => $fields
-			]);
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
-	}
+            $response = $this->post('orders', [
+                'json' => $fields
+            ]);
+            return json_decode($response->getBody(), true);
+        } catch (RequestException $e) {
+            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+        }
+    }
 
-	/**
-	 * @param $class
-	 * @return array Customer
-	 * @throws ApiException
+    /**
+     * @param $class
+     * @return array Customer
+     * @throws ApiException
 	 */
 	public function createCustomer( $class )
 	{
