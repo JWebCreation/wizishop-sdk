@@ -375,15 +375,12 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
         ];
 	    */
 	    $strlen = strlen( $class->mod_product_description);
-	    dump($strlen); die;
 
-	    if ( $strlen < 1500 )
+	    if ( strlen( $class->mod_product_description ) < 1500 )
         {
-            dump("); die;
             $description = $class->mod_product_description;
         }
         else {
-            dump("grand");
             $description = "Trop long voir BDD";
         }
 
