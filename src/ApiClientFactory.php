@@ -35,7 +35,7 @@ class ApiClientFactory
             $jwt = JWT::fromString($jsonResponse['token']);
 
             $config['account_id'] = $jsonResponse['account_id'];
-			if( !isset($config['default_shop_id']) ) {
+			if( ! array_key_exists( 'default_shop_id' , $config ) ) {
 				$config['default_shop_id'] = $jsonResponse['default_shop_id'];
 			}
 
