@@ -435,45 +435,81 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
             $tax = $class["tax"];
         }
 
-        foreach ( $class["attributes"][0] as $attribut )
-        {
-            $option[] = [
-                "value" => $attribut["value"],
-                //"sku" => $attribut["sku"],
-                "quantity" => $attribut["quantity"],
-                "price_tax_excluded" => $attribut["price"]
+        if ( $class["attributes"] != NULL ) {
+            foreach ($class["attributes"][0] as $attribut) {
+                $option[] = [
+                    "value" => $attribut["value"],
+                    //"sku" => $attribut["sku"],
+                    "quantity" => $attribut["quantity"],
+                    "price_tax_excluded" => $attribut["price"]
+                ];
+            }
+
+            $tab_attribut = [
+                'name' => $attribut["name"],
+                'options' => $option
             ];
+
+            try {
+                $fields = array(
+                    'category_id' => $tab_category[0],
+                    'other_categories_id' => $tab_category,
+                    'images' => $tab_image,
+                    'sku' => $class[0]["sku"],
+                    'name' => $class["name"],
+                    'description' => $class["description"],
+                    'brand' => $class["brand"],
+                    'tax' => $tax,
+                    'weight' => $class["weight"],
+                    'quantity' => $class["quantity"],
+                    'price_tax_excluded' => $class["price_tax_excluded"],
+                    'attributes' => [$tab_attribut]
+                );
+
+                $response = $this->post('products', [
+                    'json' => $fields
+                ]);
+
+
+                return json_decode($response->getBody(), true);
+            } catch (RequestException $e) {
+                throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+            }
         }
+        else
+        {
+            if ( $class["tax"] == NULL )
+            {
+                $tax = self::DEFAULT_TAX;
+            }
+            else {
+                $tax = $class["tax"];
+            }
 
-        $tab_attribut = [
-            'name' => $attribut["name"],
-            'options' => $option
-        ];
+            try {
+                $fields = array(
+                    'category_id' => $tab_category[0],
+                    'other_categories_id' => $tab_category,
+                    'images' => $tab_image,
+                    'sku' => $class[0]["sku"],
+                    'name' => $class["name"],
+                    'description' => $class["description"],
+                    'brand' => $class["brand"],
+                    'tax' => $tax,
+                    'weight' => $class["weight"],
+                    'quantity' => $class["quantity"],
+                    'price_tax_excluded' => $class["price_tax_excluded"],
+                );
 
-        try {
-            $fields = array(
-                'category_id' => $tab_category[0],
-                'other_categories_id' => $tab_category,
-                'images' => $tab_image,
-                //'sku' => $class[0]["sku"],
-                'name' => $class["name"],
-                'description' => $class["description"],
-                'brand' => $class["brand"],
-                'tax' => $tax,
-                'weight' => $class["weight"],
-                'quantity' => $class["quantity"],
-                'price_tax_excluded' => $class["price_tax_excluded"],
-                'attributes' => [ $tab_attribut ]
-            );
-
-            $response = $this->post('products', [
-                'json' => $fields
-            ]);
+                $response = $this->post('products', [
+                    'json' => $fields
+                ]);
 
 
-            return json_decode($response->getBody(), true);
-        } catch (RequestException $e) {
-            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+                return json_decode($response->getBody(), true);
+            } catch (RequestException $e) {
+                throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+            }
         }
     }
 
