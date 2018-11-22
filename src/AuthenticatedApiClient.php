@@ -486,6 +486,15 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
                 $tax = $class["tax"];
             }
 
+            if ( $class["brand"] == NULL )
+            {
+                $brand = "Nobrand";
+            }
+            else {
+                $brand = $class["brand"];
+            }
+
+
             try {
                 $fields = array(
                     'category_id' => $tab_category[0],
@@ -494,7 +503,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
                     'sku' => $class[0]["sku"],
                     'name' => $class["name"],
                     'description' => $class["description"],
-                    'brand' => $class["brand"],
+                    'brand' => $brand,
                     'tax' => $tax,
                     'weight' => $class["weight"],
                     'quantity' => $class["quantity"],
