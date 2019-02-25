@@ -20,6 +20,7 @@ class ApiClientFactory
     {
         $client = new Client([
             'base_uri' => AuthenticatedApiClient::API_URL,
+            'http_errors' => false
         ]);
 
         try {
