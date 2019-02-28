@@ -361,7 +361,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 * @return array Product
 	 * @throws ApiException
 	 */
-	public function createProduct( $class, $tab_category, $tab_image )
+	public function createProduct( $class, array $tab_category, $tab_image )
 	{
 	    if ( $class->mod_product_Tax == NULL )
 	        $tax = self::DEFAULT_TAX;
@@ -390,7 +390,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
 		try {
 			$fields = array(
-				'category_id' => $tab_category[0],
+				'category_id' => current( $tab_category ),
 				'other_categories_id' => $tab_category,
 				'images' => $tab_image,
 				'sku' => $class->mod_product_sku,
@@ -453,7 +453,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
             try {
                 $fields = array(
-                    'category_id' => $tab_category[0],
+                    'category_id' => current( $tab_category ),
                     'other_categories_id' => $tab_category,
                     'images' => $tab_image,
                     'sku' => $class[0]["sku"],
