@@ -22,7 +22,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 * @var JWT Json Web Token
 	 */
 
-    const DEFAULT_TAX = "20";
+    const DEFAULT_TAX = "0";
     /**
      * @const string default Tax
      */
@@ -364,9 +364,13 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function createProduct( $class, array $tab_category, $tab_image )
 	{
 	    if ( $class->mod_product_Tax == NULL )
-	        $tax = self::DEFAULT_TAX;
-	    else
-	        $tax = $class->mod_product_Tax;
+        {
+            $tax = self::DEFAULT_TAX;
+        }
+        else
+        {
+            $tax = $class->mod_product_Tax;
+        }
 
 	    /*
 	    $custom = [
@@ -390,8 +394,8 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
 		try {
 			$fields = array(
-				'category_id' => current( $tab_category ),
-				'other_categories_id' => $tab_category,
+                'category_id' => $this->getPrimaryCategory( $tab_category ),
+                'other_categories_id' => $this->filterCategory( $tab_category ),
 				'images' => $tab_image,
 				'sku' => $class->mod_product_sku,
 				'name' => $class->mod_product_name,
@@ -420,6 +424,22 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
 		}
 	}
+
+    private function filterCategory( array $categories )
+    {
+        $arrayCat = [];
+        foreach( $categories as $key => $idcat )
+        {
+            if ( $idcat != 0 && $idcat !== NULL && !empty( $idcat ) ) $arrayCat[] = $idcat ;
+        }
+
+        return $arrayCat ;
+    }
+
+    private function getPrimaryCategory( array $categories )
+    {
+        return current( $this->filterCategory( $categories ) ) ;
+    }
 
     /**
      * @param $class
@@ -453,8 +473,8 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
             try {
                 $fields = array(
-                    'category_id' => current( $tab_category ),
-                    'other_categories_id' => $tab_category,
+                    'category_id' => $this->getPrimaryCategory( $tab_category ),
+                    'other_categories_id' => $this->filterCategory( $tab_category ),
                     'images' => $tab_image,
                     'sku' => $class[0]["sku"],
                     'name' => $class["name"],
@@ -495,11 +515,17 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
                 $brand = $class["brand"];
             }
 
+            $arrayCat = [];
+            foreach( $tab_category as $key => $idcat )
+            {
+                if ( $idcat != 0 ) $arrayCat[] = $idcat ;
+            }
+
 
             try {
                 $fields = array(
-                    'category_id' => $tab_category[0],
-                    'other_categories_id' => $tab_category,
+                    'category_id' => $this->getPrimaryCategory( $tab_category ),
+                    'other_categories_id' => $this->filterCategory( $tab_category ),
                     'images' => $tab_image,
                     'sku' => $class[0]["sku"],
                     'name' => $class["name"],
@@ -555,8 +581,8 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
         try {
             $fields = array(
-                'category_id' => $tab_category[0],
-                'other_categories_id' => $tab_category,
+                'category_id' => $this->getPrimaryCategory( $tab_category ),
+                'other_categories_id' => $this->filterCategory( $tab_category ),
                 'images' => $tab_image,
                 // SKU (brands ne le retourne pas)
                 'name' => $class["name"],
