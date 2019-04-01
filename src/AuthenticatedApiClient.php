@@ -709,6 +709,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 *
 	 * @return array Orders
 	 */
+
 	public function getOrders(array $params = [])
 	{
 		if (array_key_exists('status_code', $params) && ($params['status_code'] < 0 || $params['status_code'] > 50)) {
