@@ -362,48 +362,9 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 * @return array Product
 	 * @throws ApiException
 	 */
-	public function createProduct( $class, array $tab_category, $tab_image )
+	public function createProduct( array $fields )
 	{
-        $tax = $class->mod_product_Tax;
-
-        if ( $class->mod_product_Tax == NULL )
-        {
-            $tax = self::DEFAULT_TAX;
-        }
-
-        $description = '' ;
-
-	    if ( strlen( $class->mod_product_description ) < 1500 )
-        {
-            $description = $class->mod_product_description;
-        }
-
-	    $short_text = strip_tags( $class->mod_product_short_description );
-        $text = str_replace("&#160;", "", $short_text);
-
-		try {
-			$fields = array(
-                'category_id' => $this->getPrimaryCategory( $tab_category ),
-                'other_categories_id' => $this->filterCategory( $tab_category ),
-				'images' => $tab_image,
-				'sku' => $class->mod_product_sku,
-				'name' => $class->mod_product_name,
-				'description' => $description,
-				'short_description' => $text,
-				'brand' => $class->mod_product_brand,
-				'ean13' => $class->mod_product_ean13,
-				'tax_id' => $class->mod_product_tax_id,
-				'tax' => $tax,
-				'weight' => $class->mod_product_weight,
-				'quantity' => $class->mod_product_quantity,
-				'price_tax_excluded' => $class->mod_product_price_tax_excluded,
-				'visible' => $class->mod_product_visible,
-				'url' => $class->mod_product_name,
-				'meta->title' => $class->mod_product_meta_title,
-				'meta->description' => $class->mod_product_meta_description,
-				'meta->keywords' => $class->mod_product_meta_keywords
-			);
-
+        try {
             $response = $this->post('products', [
 				'json' => $fields
 			]);
