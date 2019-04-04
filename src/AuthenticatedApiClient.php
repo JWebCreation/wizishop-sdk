@@ -1,6 +1,7 @@
 <?php
 
 namespace WiziShop\SDK;
+
 use GuzzleHttp\Exception\RequestException;
 use WiziShop\SDK\Exception\ApiException;
 use WiziShop\SDK\Model\JWT;
@@ -38,7 +39,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 		$baseUri = $apiUrl . 'v3/' . ($shopId ? sprintf('shops/%s/', $shopId) : '');
 		$defaultConfig = [
 			'base_uri' => $baseUri,
-            'http_errors' => false,
+            //'http_errors' => false,
 			'headers' => [
 				'User-Agent' => sprintf('%s wizishop-php-sdk/%s', \GuzzleHttp\default_user_agent(), self::VERSION),
 				'Authorization' => 'Bearer ' . $this->jwt->getToken()
@@ -109,9 +110,9 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 				}
 			);
 		} catch (RequestException $e) {
-			if (404 == $e->getResponse()->getStatusCode()) { // If no result, the API returns 404
-				return [];
-			}
+            if (404 == $e->getResponse()->getStatusCode()) { // If no result, the API returns 404
+                return [];
+            }
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
 		}
 	}
@@ -363,30 +364,18 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function createProduct( $class, array $tab_category, $tab_image )
 	{
-	    if ( $class->mod_product_Tax == NULL )
+        $tax = $class->mod_product_Tax;
+
+        if ( $class->mod_product_Tax == NULL )
         {
             $tax = self::DEFAULT_TAX;
         }
-        else
-        {
-            $tax = $class->mod_product_Tax;
-        }
 
-	    /*
-	    $custom = [
-            "title" => $class->garantie2,
-            "price_tax_excluded" => $class->ccost,
-            "mandatory" => false,
-        ];
-	    */
-	    $strlen = strlen( $class->mod_product_description);
+        $description = '' ;
 
 	    if ( strlen( $class->mod_product_description ) < 1500 )
         {
             $description = $class->mod_product_description;
-        }
-        else {
-            $description = "Trop long voir BDD";
         }
 
 	    $short_text = strip_tags( $class->mod_product_short_description );
@@ -415,11 +404,18 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 				'meta->keywords' => $class->mod_product_meta_keywords
 			);
 
-			$response = $this->post('products', [
+            $response = $this->post('products', [
 				'json' => $fields
 			]);
 
-			return json_decode($response->getBody(), true);
+			$rst = json_decode($response->getBody(), true) ;
+
+			if ( ! $rst )
+            {
+                dump( $fields , $response );
+            }
+
+			return $rst;
 		} catch (RequestException $e) {
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
 		}
@@ -503,15 +499,13 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
             {
                 $tax = self::DEFAULT_TAX;
             }
-            else {
+            else
+            {
                 $tax = $class["tax"];
             }
 
-            if ( $class["brand"] == NULL )
+            if ( $class["brand"] != NULL )
             {
-                $brand = "Nobrand";
-            }
-            else {
                 $brand = $class["brand"];
             }
 
