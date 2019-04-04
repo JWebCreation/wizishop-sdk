@@ -409,7 +409,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 				'quantity' => $class->mod_product_quantity,
 				'price_tax_excluded' => $class->mod_product_price_tax_excluded,
 				'visible' => $class->mod_product_visible,
-				'url' => $class->mod_product_url,
+				'url' => $class->mod_product_name,
 				'meta->title' => $class->mod_product_meta_title,
 				'meta->description' => $class->mod_product_meta_description,
 				'meta->keywords' => $class->mod_product_meta_keywords
