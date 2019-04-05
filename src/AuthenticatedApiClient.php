@@ -39,7 +39,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 		$baseUri = $apiUrl . 'v3/' . ($shopId ? sprintf('shops/%s/', $shopId) : '');
 		$defaultConfig = [
 			'base_uri' => $baseUri,
-            //'http_errors' => false,
+            'http_errors' => false,
 			'headers' => [
 				'User-Agent' => sprintf('%s wizishop-php-sdk/%s', \GuzzleHttp\default_user_agent(), self::VERSION),
 				'Authorization' => 'Bearer ' . $this->jwt->getToken()
