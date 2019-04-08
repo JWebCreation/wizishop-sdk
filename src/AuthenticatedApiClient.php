@@ -273,59 +273,6 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	}
 
 	/**
-	 * @param string $brandId
-	 * @param string $newName
-	 * @param string $newUrl
-	 * @param string $newImageUrl
-	 *
-	 * @return array Brand
-	 */
-	public function updateBrand($brandId, $newName, $newUrl = null, $newImageUrl = null)
-	{
-		try {
-			$fields = [
-				'name' => $newName
-			];
-			if ($newUrl) {
-				$fields['url'] = $newUrl;
-			}
-			if ($newImageUrl) {
-				$fields['image_url'] = $newImageUrl;
-			}
-			$response = $this->patch(sprintf('brands/%s', $brandId), [
-				'json' => $fields
-			]);
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
-	}
-
-	/**
-	 * @param string $name
-	 * @param string $newImageUrl
-	 *
-	 * @return array Brand
-	 */
-	public function createBrand($name, $newImageUrl = null)
-	{
-		try {
-			$fields = [
-				'name' => $name
-			];
-			if ($newImageUrl) {
-				$fields['image_url'] = $newImageUrl;
-			}
-			$response = $this->post('brands', [
-				'json' => $fields
-			]);
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
-	}
-
-	/**
 	 * @param string $name
 	 * @param string $menu
 	 * @param string $newUrl
@@ -357,150 +304,42 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 		}
 	}
 
-	/**
-	 * @param $class
-	 * @return array Product
-	 * @throws ApiException
-	 */
-	public function createProduct( array $fields )
-	{
-        try {
-            $response = $this->post('products', [
-				'json' => $fields
-			]);
-
-			$rst = json_decode($response->getBody(), true) ;
-
-			if ( ! $rst )
-            {
-                dump( $fields , $response );
-            }
-
-			return $rst;
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
-	}
-
-    private function filterCategory( array $categories )
-    {
-        $arrayCat = [];
-        foreach( $categories as $key => $idcat )
-        {
-            if ( $idcat != 0 && $idcat !== NULL && !empty( $idcat ) ) $arrayCat[] = $idcat ;
-        }
-
-        return $arrayCat ;
-    }
-
-    private function getPrimaryCategory( array $categories )
-    {
-        return current( $this->filterCategory( $categories ) ) ;
-    }
-
     /**
-     * @param $class
+     * @param array $fields
      * @return array Product
      * @throws ApiException
      */
-    public function createProductVariation( $class, $tab_category, $tab_image )
+    public function createProduct( array $fields )
     {
-        if ( $class["tax"] == NULL )
-        {
-            $tax = self::DEFAULT_TAX;
+        try {
+            $response = $this->post('products', [
+                'json' => $fields
+            ]);
+
+            $rst = json_decode($response->getBody(), true) ;
+
+            return $rst;
+        } catch (RequestException $e) {
+            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
         }
-        else {
-            $tax = $class["tax"];
-        }
+    }
 
-        if ( $class["attributes"] != NULL ) {
-            foreach ($class["attributes"][0] as $attribut) {
-                $option[] = [
-                    "value" => $attribut["value"],
-                    //"sku" => $attribut["sku"],
-                    "quantity" => $attribut["quantity"],
-                    "price_tax_excluded" => $attribut["price"]
-                ];
-            }
+    /**
+     * @param array $fields
+     * @throws ApiException
+     */
+    public function createOrderCustomState( array $fields )
+    {
+        try {
+            $response = $this->post('ordercustomstate', [
+                'json' => $fields
+            ]);
 
-            $tab_attribut = [
-                'name' => $attribut["name"],
-                'options' => $option
-            ];
+            $rst = json_decode($response->getBody(), true) ;
 
-            try {
-                $fields = array(
-                    'category_id' => $this->getPrimaryCategory( $tab_category ),
-                    'other_categories_id' => $this->filterCategory( $tab_category ),
-                    'images' => $tab_image,
-                    'sku' => $class[0]["sku"],
-                    'name' => $class["name"],
-                    'description' => $class["description"],
-                    'brand' => $class["brand"],
-                    'tax' => $tax,
-                    'weight' => $class["weight"],
-                    'quantity' => $class["quantity"],
-                    'price_tax_excluded' => $class["price_tax_excluded"],
-                    'attributes' => [$tab_attribut]
-                );
-
-                $response = $this->post('products', [
-                    'json' => $fields
-                ]);
-
-
-                return json_decode($response->getBody(), true);
-            } catch (RequestException $e) {
-                throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-            }
-        }
-        else
-        {
-            if ( $class["tax"] == NULL )
-            {
-                $tax = self::DEFAULT_TAX;
-            }
-            else
-            {
-                $tax = $class["tax"];
-            }
-
-            if ( $class["brand"] != NULL )
-            {
-                $brand = $class["brand"];
-            }
-
-            $arrayCat = [];
-            foreach( $tab_category as $key => $idcat )
-            {
-                if ( $idcat != 0 ) $arrayCat[] = $idcat ;
-            }
-
-
-            try {
-                $fields = array(
-                    'category_id' => $this->getPrimaryCategory( $tab_category ),
-                    'other_categories_id' => $this->filterCategory( $tab_category ),
-                    'images' => $tab_image,
-                    'sku' => $class[0]["sku"],
-                    'name' => $class["name"],
-                    'description' => $class["description"],
-                    'brand' => $brand,
-                    'tax' => $tax,
-                    'weight' => $class["weight"],
-                    'quantity' => $class["quantity"],
-                    'price_tax_excluded' => $class["price_tax_excluded"],
-                );
-
-                $response = $this->post('products', [
-                    'json' => $fields
-                ]);
-
-
-                return json_decode($response->getBody(), true);
-            } catch (RequestException $e) {
-                throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-            }
+            return $rst;
+        } catch (RequestException $e) {
+            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
         }
     }
 
@@ -512,86 +351,19 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
      *
      * @return array Brand
      */
-    public function updateProduct( $ProductId, $class, $tab_category, $tab_image )
-    {
-        if ($class["tax"] == NULL) {
-            $tax = self::DEFAULT_TAX;
-        } else {
-            $tax = $class["tax"];
-        }
-
-        foreach ($class["attributes"][0] as $attribut) {
-            $option[] = [
-                "value" => $attribut["value"],
-                //"sku" => $attribut["sku"],
-                "quantity" => $attribut["quantity"],
-                "price_tax_excluded" => $attribut["price"]
-            ];
-        }
-
-        $tab_attribut = [
-            'name' => $attribut["name"],
-            'options' => $option
-        ];
-
-        try {
-            $fields = array(
-                'category_id' => $this->getPrimaryCategory( $tab_category ),
-                'other_categories_id' => $this->filterCategory( $tab_category ),
-                'images' => $tab_image,
-                // SKU (brands ne le retourne pas)
-                'name' => $class["name"],
-                'description' => $class["description"],
-                'brand' => $class["brand"],
-                'tax' => $tax,
-                'weight' => $class["weight"],
-                'quantity' => $class["quantity"],
-                'price_tax_excluded' => $class["price_tax_excluded"],
-                'attributes' => [$tab_attribut]
-            );
-
-            $response = $this->patch(sprintf('products/%s', $ProductId), [
-                'json' => $fields
-            ]);
-            return json_decode($response->getBody(), true);
-        } catch (RequestException $e) {
-            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-        }
-    }
-
-    /**
-     * @param $class
-     * @return array Order
-     * @throws ApiException
-     */
-    public function createOrder( $class )
+    public function updateBrand($brandId, $newName, $newUrl = null, $newImageUrl = null)
     {
         try {
             $fields = [
-                'id' => $class->order_id,
-                'date' => $class->date,
-                'status_text' => $class->status_name,
-                'status_code' => $class->wizi_status_id,
-                'currency' => $class->currency,
-                'total_amount' => $class->total_amount,
-                'total_shipping_amount' => $class->total_shipping,
-                'payment_label' => $class->payment_method_name,
-                'number_of_products' => $class->total_products,
-                'weight' => $class->weight,
-                'billing_address[lastname]' => $class->customer_last_name,
-                'billing_address[firstname]' => $class->customer_first_name,
-                'billing_address[street]' => $class->billing_add,
-                'billing_address[country]' => $class->billing_add_country,
-                'billing_address[email]' => $class->customer_email,
-                'shipping_address[lastname]' => $class->customer_last_name,
-                'shipping_address[firstname]' => $class->customer_first_name,
-                'shipping_address[street]' => $class->shipping_add,
-                'shipping_address[country]' => $class->shipping_add_country,
-                'shipping_address[email]' => $class->customer_email,
-                'shippings[code]' => $class->shipping_code
+                'name' => $newName
             ];
-
-            $response = $this->post('orders', [
+            if ($newUrl) {
+                $fields['url'] = $newUrl;
+            }
+            if ($newImageUrl) {
+                $fields['image_url'] = $newImageUrl;
+            }
+            $response = $this->patch(sprintf('brands/%s', $brandId), [
                 'json' => $fields
             ]);
             return json_decode($response->getBody(), true);
@@ -601,45 +373,28 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
     }
 
     /**
-     * @param $class
-     * @return array Customer
-     * @throws ApiException
-	 */
-	public function createCustomer( $class )
-	{
-		try {
-			$fields = [
-				'id' => $class->a2c_id,
-				'gender' => $class->gender,
-				'firstname' => $class->firstname,
-				'lastname' => $class->lastname,
-				'email' => $class->email,
-				'birthdate' => $class->birthdate,
-				'registered_at' => $class->registered_at,
-				'billing_address[firstname]' => $class->firstname,
-				'billing_address[lastname]' => $class->lastname,
-				'billing_address[company]' => $class->company,
-				'billing_address[phone]' => $class->phone,
-				'billing_address[city]' => $class->city,
-				'billing_address[street_address]' => $class->street_address,
-				'billing_address[zip_code]' => $class->postcode,
-				'delivery_address[firstname]' => $class->firstname,
-				'delivery_address[lastname]' => $class->lastname,
-				'delivery_address[company]' => $class->company,
-				'delivery_address[phone]' => $class->phone,
-				'delivery_address[zip_code]' => $class->postcode,
-				'delivery_address[city]' => $class->city,
-				'delivery_address[street_address]' => $class->street_address,
-			];
-
-			$response = $this->post('customers', [
-				'json' => $fields
-			]);
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
-	}
+     * @param string $name
+     * @param string $newImageUrl
+     *
+     * @return array Brand
+     */
+    public function createBrand($name, $newImageUrl = null)
+    {
+        try {
+            $fields = [
+                'name' => $name
+            ];
+            if ($newImageUrl) {
+                $fields['image_url'] = $newImageUrl;
+            }
+            $response = $this->post('brands', [
+                'json' => $fields
+            ]);
+            return json_decode($response->getBody(), true);
+        } catch (RequestException $e) {
+            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+        }
+    }
 
 	/**
 	 * @param int $brandId
