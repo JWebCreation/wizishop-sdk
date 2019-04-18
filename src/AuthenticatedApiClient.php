@@ -329,7 +329,28 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
             ]);
 
             $this->waitLimit( $response );
-            dump($response->getStatusCode());
+
+            return json_decode($response->getBody(), true) ;;
+        } catch (RequestException $e) {
+            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+        }
+    }
+
+
+    /**
+     * @param $id
+     * @param $fields
+     * @return mixed
+     * @throws ApiException
+     */
+    public function updateProduct($id, $fields)
+    {
+        try {
+            $response = $this->put('products/' . $id , [
+                'json' => $fields
+            ]);
+
+            $this->waitLimit( $response );
 
             return json_decode($response->getBody(), true) ;;
         } catch (RequestException $e) {
