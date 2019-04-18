@@ -22,13 +22,8 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	/**
 	 * @var JWT Json Web Token
 	 */
-
-    const DEFAULT_TAX = "0";
-    /**
-     * @const string default Tax
-     */
-
 	private $jwt;
+	private $limit = 0;
 
 	public function __construct(JWT $jwt, array $config = [])
 	{
@@ -39,7 +34,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 		$baseUri = $apiUrl . 'v3/' . ($shopId ? sprintf('shops/%s/', $shopId) : '');
 		$defaultConfig = [
 			'base_uri' => $baseUri,
-            'http_errors' => false,
+            'http_errors' => true,
 			'headers' => [
 				'User-Agent' => sprintf('%s wizishop-php-sdk/%s', \GuzzleHttp\default_user_agent(), self::VERSION),
 				'Authorization' => 'Bearer ' . $this->jwt->getToken()
@@ -58,6 +53,12 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
         $error->getMessage();
         $error->getRequest();
         $error->getResponse();
+    }
+
+    private function waitLimit( $response )
+    {
+        $this->limit = intval( $response->getHeader('X-RateLimit-Remaining')[0] ) ;
+        if ( $this->limit < 5 ) sleep(60);
     }
 
 	/**
@@ -103,6 +104,9 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 								'page' => $page
 							] + $params
 					]);
+
+                    $this->waitLimit( $response );
+
 					return json_decode($response->getBody(), true);
 				},
 				function ($resultPage) {
@@ -117,16 +121,21 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 		}
 	}
 
-	/**
-	 * @param string $route
-	 * @param array $params
-	 *
-	 * @return array Result
-	 */
-	private function getSingleResultForRoute($route, array $params = [])
+    /**
+     * @param string $route
+     * @param array $params
+     *
+     * @param string $method
+     * @return array Result
+     * @throws ApiException
+     */
+	private function getSingleResultForRoute($route, array $params = [] , string $method = 'get' )
 	{
 		try {
-			$response = $this->get($route, $params);
+			$response = $this->$method($route, $params);
+
+            $this->waitLimit( $response );
+
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
 			if (404 == $e->getResponse()->getStatusCode()) { // If no result, the API returns 404
@@ -266,6 +275,9 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 					'stock' => $stock
 				]
 			]);
+
+            $this->waitLimit( $response );
+
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -286,17 +298,17 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	public function createCategory( $newId, $newParent_id, $name, $newUrl, $menu , $visible = true )
 	{
 		try {
-			$fields = [
-				'id_parent' => $newParent_id,
-				'name' => $name,
-				'url' => $newUrl,
-				'menu_title' => $menu,
-				'visible' => $visible
-			];
-
 			$response = $this->post('categories', [
-				'json' => $fields
+				'json' => [
+                    'id_parent' => $newParent_id,
+                    'name' => $name,
+                    'url' => $newUrl,
+                    'menu_title' => $menu,
+                    'visible' => $visible
+                ]
 			]);
+
+            $this->waitLimit( $response );
 
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
@@ -316,9 +328,10 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
                 'json' => $fields
             ]);
 
-            $rst = json_decode($response->getBody(), true) ;
+            $this->waitLimit( $response );
+            dump($response->getStatusCode());
 
-            return $rst;
+            return json_decode($response->getBody(), true) ;;
         } catch (RequestException $e) {
             throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
         }
@@ -335,9 +348,9 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
                 'json' => $fields
             ]);
 
-            $rst = json_decode($response->getBody(), true) ;
+            $this->waitLimit( $response );
 
-            return $rst;
+            return json_decode($response->getBody(), true) ;
         } catch (RequestException $e) {
             throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
         }
@@ -366,6 +379,9 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
             $response = $this->patch(sprintf('brands/%s', $brandId), [
                 'json' => $fields
             ]);
+
+            $this->waitLimit( $response );
+
             return json_decode($response->getBody(), true);
         } catch (RequestException $e) {
             throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -390,6 +406,9 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
             $response = $this->post('brands', [
                 'json' => $fields
             ]);
+
+            $this->waitLimit( $response );
+
             return json_decode($response->getBody(), true);
         } catch (RequestException $e) {
             throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
@@ -403,12 +422,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function deleteBrand($brandId)
 	{
-		try {
-			$response = $this->delete(sprintf('brands/%s', $brandId));
-			return 204 == $response->getStatusCode();
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('brands/%s', $brandId), [] , 'delete');
 	}
 
 	/**
@@ -434,9 +448,15 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 		return $this->getAllResultsForRoute('orders', $params);
 	}
 
-	public function getOrder($orderId, array $params = [])
+    /**
+     * @param $orderId
+     * @param array $params
+     * @return array
+     * @throws ApiException
+     */
+    public function getOrder($orderId, array $params = [])
 	{
-		return $this->getSingleResultForRoute(sprintf('orders/%s', $orderId), $params);
+        return $this->getSingleResultForRoute(sprintf('orders/%s', $orderId), $params);
 	}
 
 	/**
@@ -447,12 +467,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function getInvoiceForOrder($orderId, array $params = [])
 	{
-		try {
-			$response = $this->get(sprintf('orders/%s/invoice', $orderId), $params);
-			return (string) $response->getBody();
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/invoice', $orderId), $params);
 	}
 
 	/**
@@ -463,12 +478,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function getPickingSlipForOrder($orderId, array $params = [])
 	{
-		try {
-			$response = $this->get(sprintf('orders/%s/picking_slip', $orderId), $params);
-			return (string) $response->getBody();
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/picking_slip', $orderId), $params);
 	}
 
 	/**
@@ -479,12 +489,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function getDeliverySlipForOrder($orderId, array $params = [])
 	{
-		try {
-			$response = $this->get(sprintf('orders/%s/delivery_slip', $orderId), $params);
-			return (string) $response->getBody();
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/delivery_slip', $orderId), $params);
 	}
 
 	/**
@@ -496,12 +501,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function pendingPaymentOrder($orderId)
 	{
-		try {
-			$response = $this->put(sprintf('orders/%s/status/pending_payment', $orderId));
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/status/pending_payment', $orderId), [] , 'put');
 	}
 
 	/**
@@ -513,12 +513,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function pendingPaymentVerificationOrder($orderId)
 	{
-		try {
-			$response = $this->put(sprintf('orders/%s/status/pending_payment_verification', $orderId));
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/status/pending_payment_verification', $orderId), [] , 'put');
 	}
 
 	/**
@@ -530,12 +525,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function pendingReplenishmentOrder($orderId)
 	{
-		try {
-			$response = $this->put(sprintf('orders/%s/status/pending_replenishment', $orderId));
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/status/pending_replenishment', $orderId), [] , 'put');
 	}
 
 	/**
@@ -547,12 +537,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function pendingPreparationOrder($orderId)
 	{
-		try {
-			$response = $this->put(sprintf('orders/%s/status/pending_preparation', $orderId));
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/status/pending_preparation', $orderId), [] , 'put');
 	}
 
 	/**
@@ -564,12 +549,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function preparingOrder($orderId)
 	{
-		try {
-			$response = $this->put(sprintf('orders/%s/status/preparing', $orderId));
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/status/pending_preparation', $orderId), [] , 'put');
 	}
 
 	/**
@@ -581,12 +561,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function partiallySentOrder($orderId)
 	{
-		try {
-			$response = $this->put(sprintf('orders/%s/status/partially_sent', $orderId));
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/status/partially_sent', $orderId), [] , 'put');
 	}
 
 	/**
@@ -607,14 +582,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function shipOrder($orderId, array $trackingNumbers)
 	{
-		try {
-			$response = $this->put(sprintf('orders/%s/status/ship', $orderId), [
-				'json' => $trackingNumbers
-			]);
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/status/ship', $orderId), [] , 'put');
 	}
 
 	/**
@@ -626,12 +594,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function deliveredOrder($orderId)
 	{
-		try {
-			$response = $this->put(sprintf('orders/%s/status/delivered', $orderId));
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/status/delivered', $orderId), [] , 'put');
 	}
 
 	/**
@@ -643,12 +606,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function returnOrder($orderId)
 	{
-		try {
-			$response = $this->put(sprintf('orders/%s/status/return', $orderId));
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/status/return', $orderId), [] , 'put');
 	}
 
 	/**
@@ -660,12 +618,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function returnedOrder($orderId)
 	{
-		try {
-			$response = $this->put(sprintf('orders/%s/status/returned', $orderId));
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/status/returned', $orderId), [] , 'put');
 	}
 
 	/**
@@ -677,12 +630,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	 */
 	public function refundedOrder($orderId)
 	{
-		try {
-			$response = $this->put(sprintf('orders/%s/status/refunded', $orderId));
-			return json_decode($response->getBody(), true);
-		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-		}
+        return $this->getSingleResultForRoute(sprintf('orders/%s/status/refunded', $orderId), [] , 'put');
 	}
 
 /**
@@ -694,11 +642,14 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
  */
     public function cancelOrder($orderId)
     {
-        try {
-            $response = $this->put(sprintf('orders/%s/status/cancel', $orderId));
-            return json_decode($response->getBody(), true);
-        } catch (RequestException $e) {
-            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
-        }
+        return $this->getSingleResultForRoute(sprintf('orders/%s/status/cancel', $orderId), [] , 'put');
+    }
+
+    /**
+     * @return int
+     */
+    public function getLimit()
+    {
+        return $this->limit;
     }
 }
