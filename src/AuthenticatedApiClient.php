@@ -35,6 +35,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 		$defaultConfig = [
 			'base_uri' => $baseUri,
             'http_errors' => true,
+            'debug' => false,
 			'headers' => [
 				'User-Agent' => sprintf('%s wizishop-php-sdk/%s', \GuzzleHttp\default_user_agent(), self::VERSION),
 				'Authorization' => 'Bearer ' . $this->jwt->getToken()
@@ -325,10 +326,16 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
     {
         try {
             $response = $this->post('products', [
-                'json' => $fields
+                'json' => json_decode( json_encode( $fields ) )
             ]);
 
             $this->waitLimit( $response );
+
+            if ( $response->getStatusCode() != 201 )
+            {
+                echo json_encode( $fields , JSON_UNESCAPED_UNICODE + JSON_PRETTY_PRINT );
+                return false ;
+            }
 
             return json_decode($response->getBody(), true) ;;
         } catch (RequestException $e) {
