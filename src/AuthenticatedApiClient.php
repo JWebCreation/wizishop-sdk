@@ -25,8 +25,11 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 	private $jwt;
 	private $limit = 0;
 
-	public function __construct(JWT $jwt, array $config = [])
+    private $callRemain;
+
+    public function __construct(JWT $jwt, array $config = [])
 	{
+	    $this->callRemain = NULL ;
 		$this->jwt = $jwt;
 		$shopId = $jwt->get('default_shop_id');
 		$shopId = $config['default_shop_id'];
@@ -333,14 +336,28 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
             if ( $response->getStatusCode() != 201 )
             {
-                echo json_encode( $fields , JSON_UNESCAPED_UNICODE + JSON_PRETTY_PRINT );
+                echo $this->jwt->getToken() . "\n" ;
+
+                $path = dirname(__DIR__, 5) . "/cms/web/errors/";
+                $this->log( json_encode( $fields , JSON_UNESCAPED_UNICODE + JSON_PRETTY_PRINT ) , $path . 'error-product-' . $fields['sku'] . ".json" ) ;
                 return false ;
             }
+            else if ( $response->getStatusCode() != 201 )
+            {
 
+            }
             return json_decode($response->getBody(), true) ;;
         } catch (RequestException $e) {
+            dump($fields);
             throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
         }
+    }
+
+    private function log( $content , $nameFile )
+    {
+        $fichier = fopen($nameFile, 'w+');
+        fwrite($fichier, $content);
+        fclose($fichier);
     }
 
 
