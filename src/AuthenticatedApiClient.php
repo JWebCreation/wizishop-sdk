@@ -62,7 +62,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
     private function waitLimit( $response )
     {
         $this->limit = intval( $response->getHeader('X-RateLimit-Remaining')[0] ) ;
-        if ( $this->limit < 5 ) sleep(60);
+        if ( $this->limit < 50 ) sleep(60);
     }
 
 	/**
