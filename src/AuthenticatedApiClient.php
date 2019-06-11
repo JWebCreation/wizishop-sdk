@@ -338,8 +338,6 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
             {
                 echo $this->jwt->getToken() . "\n" ;
 
-                $path = dirname(__DIR__, 5) . "/cms/web/errors/";
-                $this->log( json_encode( $fields , JSON_UNESCAPED_UNICODE + JSON_PRETTY_PRINT ) , $path . 'error-product-' . $fields['sku'] . ".json" ) ;
                 return false ;
             }
             else if ( $response->getStatusCode() != 201 )
@@ -348,7 +346,9 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
             }
             return json_decode($response->getBody(), true) ;;
         } catch (RequestException $e) {
-            dump($fields);
+            $path = dirname(__DIR__, 5) . "/cms/web/errors/";
+            $this->log( json_encode( $fields , JSON_UNESCAPED_UNICODE + JSON_PRETTY_PRINT ) , $path . 'error-product-' . $fields['sku'] . ".json" ) ;
+
             throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
         }
     }
