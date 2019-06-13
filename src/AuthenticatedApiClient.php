@@ -288,28 +288,16 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 		}
 	}
 
-	/**
-	 * @param string $name
-	 * @param string $menu
-	 * @param string $newUrl
-	 * @param int $newId
-	 * @param int $newParent_id
-	 * @param boolean $visible
-	 *
-	 * @return array Category
-	 * @throws ApiException
-	 */
-	public function createCategory( $newId, $newParent_id, $name, $newUrl, $menu , $visible = true )
+    /**
+     * @param array $fields
+     * @return mixed
+     * @throws ApiException
+     */
+    public function createCategory(array $fields )
 	{
 		try {
 			$response = $this->post('categories', [
-				'json' => [
-                    'id_parent' => $newParent_id,
-                    'name' => $name,
-                    'url' => $newUrl,
-                    'menu_title' => $menu,
-                    'visible' => $visible
-                ]
+				'json' => json_decode( json_encode( $fields ) )
 			]);
 
             $this->waitLimit( $response );
@@ -332,18 +320,6 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
                 'json' => json_decode( json_encode( $fields ) )
             ]);
 
-            $this->waitLimit( $response );
-
-            if ( $response->getStatusCode() != 201 )
-            {
-                echo $this->jwt->getToken() . "\n" ;
-
-                return false ;
-            }
-            else if ( $response->getStatusCode() != 201 )
-            {
-
-            }
             return json_decode($response->getBody(), true) ;;
         } catch (RequestException $e) {
             $path = dirname(__DIR__, 5) . "/cms/web/errors/";
@@ -696,5 +672,26 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
     public function getLimit()
     {
         return $this->limit;
+    }
+
+    /**
+     * @param array $fields
+     * @return mixed
+     * @throws ApiException
+     */
+    public function createCustomer( array $fields )
+    {
+        try {
+            $response = $this->post('customers', [
+                'json' => json_decode( json_encode( $fields ) )
+            ]);
+
+            return json_decode($response->getBody(), true) ;;
+        } catch (RequestException $e) {
+            $path = dirname(__DIR__, 5) . "/cms/web/errors/";
+            $this->log( json_encode( $fields , JSON_UNESCAPED_UNICODE + JSON_PRETTY_PRINT ) , $path . 'error-customer-' . date("Y-m-d--H:i:s") . ".json" ) ;
+
+            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+        }
     }
 }
