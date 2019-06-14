@@ -320,7 +320,9 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
                 'json' => json_decode( json_encode( $fields ) )
             ]);
 
-            return json_decode($response->getBody(), true) ;;
+            $this->waitLimit( $response );
+
+            return json_decode($response->getBody(), true) ;
         } catch (RequestException $e) {
             $path = dirname(__DIR__, 5) . "/cms/web/errors/";
             $this->log( json_encode( $fields , JSON_UNESCAPED_UNICODE + JSON_PRETTY_PRINT ) , $path . 'error-product-' . $fields['sku'] . ".json" ) ;
@@ -352,7 +354,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
             $this->waitLimit( $response );
 
-            return json_decode($response->getBody(), true) ;;
+            return json_decode($response->getBody(), true) ;
         } catch (RequestException $e) {
             throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
         }
@@ -686,12 +688,58 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
                 'json' => json_decode( json_encode( $fields ) )
             ]);
 
-            return json_decode($response->getBody(), true) ;;
-        } catch (RequestException $e) {
-            $path = dirname(__DIR__, 5) . "/cms/web/errors/";
-            $this->log( json_encode( $fields , JSON_UNESCAPED_UNICODE + JSON_PRETTY_PRINT ) , $path . 'error-customer-' . date("Y-m-d--H:i:s") . ".json" ) ;
+            $this->waitLimit( $response );
 
-            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+            $rst = json_decode($response->getBody(), true);
+
+            return array_merge([
+                'exist' => false
+            ], $rst );
+        } catch (RequestException $e) {
+            if ( $e->getResponse()->getStatusCode() == 400 )
+            {
+                $this->waitLimit( $e->getResponse() );
+
+                $result = json_decode($e->getResponse()->getBody(), true);
+
+                if ( $result )
+                {
+                    dump($result['message']);
+                    list( $null , $id ) = explode('#' , $result['message'] );
+
+                    return [
+                        'exist' => true,
+                        'id' => $id
+                    ];
+                }
+            }
+            else
+            {
+                throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+            }
         }
     }
+
+    /*
+
+    public function createCustomer( array $fields )
+    {
+        $response = $this->post('customers', [
+            'json' => json_decode( json_encode( $fields ) )
+        ]);
+
+        $result = json_decode($response->getBody(), true) ;
+
+        $this->waitLimit( $response );
+
+        if (400 == $response->getStatusCode() or 200 == $response->getStatusCode()) { // If no result, the API returns 404
+            return $result ;
+        }
+        else
+        {
+            return false ;
+        }
+    }
+     */
+
 }
