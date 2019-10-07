@@ -274,7 +274,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 			throw new \InvalidArgumentException('Update stock method cannot be ' . $method);
 		}
 		try {
-			$response = $this->patch(sprintf('skus/%s', rawurlencode($sku)), [
+			$response = $this->put(sprintf('skus/%s', rawurlencode($sku)), [
 				'json' => [
 					'method' => $method,
 					'stock' => $stock
