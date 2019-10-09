@@ -309,6 +309,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
+		    dump($fields);
 			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
 		}
 	}
