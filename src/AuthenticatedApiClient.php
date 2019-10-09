@@ -285,7 +285,11 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+            if ( $e->getResponse()->getStatusCode() != 200 )
+            {
+                return false ;
+            }
+            //throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
 		}
 	}
 
@@ -325,11 +329,22 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
             return json_decode($response->getBody(), true) ;
         } catch (RequestException $e) {
-            $path = dirname(__DIR__, 5) . "/cms/web/errors/";
-            $this->log( json_encode( $fields , JSON_UNESCAPED_UNICODE + JSON_PRETTY_PRINT ) , $path . 'error-product-' . $fields['sku'] . ".json" ) ;
+            $this->setError( $e->getMessage() );
+            return false ;
 
-            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+//            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
         }
+    }
+
+    protected function setError( $error )
+    {
+        list( , $json ) = explode( "{" , $error );
+        $this->error = json_decode( "{" . $json , true ) ;
+    }
+
+    public function getError()
+    {
+        return $this->error ;
     }
 
     private function log( $content , $nameFile )
@@ -357,7 +372,11 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
             return json_decode($response->getBody(), true) ;
         } catch (RequestException $e) {
-            throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+            if ( $e->getResponse()->getStatusCode() != 200 )
+            {
+                return false ;
+            }
+            //throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
         }
     }
 
