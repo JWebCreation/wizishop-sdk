@@ -298,7 +298,7 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
      * @return mixed
      * @throws ApiException
      */
-    public function createCategory(array $fields )
+    public function createCategory( array $fields )
 	{
 		try {
 			$response = $this->post('categories', [
@@ -309,8 +309,11 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
 
 			return json_decode($response->getBody(), true);
 		} catch (RequestException $e) {
-		    dump($fields);
-			throw new ApiException($e->getMessage(), $e->getRequest(), $e->getResponse());
+            if ( $e->getResponse()->getStatusCode() >= 300 )
+            {
+                $this->setError( $e->getMessage() );
+                return false ;
+            }
 		}
 	}
 
