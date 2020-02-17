@@ -191,6 +191,17 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
     /**
      * @param array $params
      *
+     * @return array Products
+     */
+    public function getProduct( $productId , array $params = [] )
+    {
+//        return $this->getAllResultsForRoute('products', $params);
+		return $this->getSingleResultForRoute(sprintf('products/%s', rawurlencode($productId)), $params);
+    }
+
+    /**
+     * @param array $params
+     *
      * @return array Brands
      */
     public function getCategories(array $params = [])
