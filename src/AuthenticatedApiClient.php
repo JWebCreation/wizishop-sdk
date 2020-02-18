@@ -206,8 +206,8 @@ class AuthenticatedApiClient extends \GuzzleHttp\Client
      */
     public function getCategories(array $params = [])
     {
-//        return $this->getAllResultsForRoute('categories');
-		return $this->getSingleResultForRoute("categories", []);
+        return $this->getAllResultsForRoute('categories');
+//		return $this->getSingleResultForRoute("categories", []);
     }
 
 	/**
